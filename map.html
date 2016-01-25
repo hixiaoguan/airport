@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>机场巴士线路图-智慧青岛</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.5.7/css/??sm.min.css,sm-extend.min.css">
+    <link rel="stylesheet" href="css/airport.min.css"/>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=6fa41fcaff95107eb6ec53be222051ef&plugin=AMap.LineSearch"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+</head>
+<body id="airport">
+<div class="page">
+    <div class="content">
+
+        <div id="container"></div>
+
+        <script language="javascript">
+            /*
+             * 该示例主要流程分为三个步骤
+             * 1. 首先调用公交路线查询服务(lineSearch)
+             * 2. 根据返回结果解析，输出解析结果(lineSearch_Callback)
+             * 3. 在地图上绘制公交线路()
+             */
+            var map = new AMap.Map("container", {
+                resizeEnable: true,
+                center: [116.397428, 39.90923],//地图中心点
+                zoom: 13 //地图显示的缩放级别
+            });
+
+            //定位
+            map.plugin('AMap.Geolocation', function() {
+                geolocation = new AMap.Geolocation({
+                    enableHighAccuracy: true,//是否使用高精度定位，默认:true
+                    timeout: 10000,          //超过10秒后停止定位，默认：无穷大
+                    buttonOffset: new AMap.Pixel(10, 20),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+                    zoomToAccuracy: true,      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+                    buttonPosition:'RB'
+                });
+                map.addControl(geolocation);
+                geolocation.getCurrentPosition();
+                AMap.event.addListener(geolocation, 'complete', onComplete);//返回定位信息
+                AMap.event.addListener(geolocation, 'error', onError);      //返回定位出错信息
+            });
+            //解析定位结果
+            function onComplete(data) {
+                var str=['定位成功'];
+                str.push('经度：' + data.position.getLng());
+                str.push('纬度：' + data.position.getLat());
+                str.push('精度：' + data.accuracy + ' 米');
+                str.push('是否经过偏移：' + (data.isConverted ? '是' : '否'));
+                document.getElementById('tip').innerHTML = str.join('<br>');
+            }
+            //解析定位错误信息
+            function onError(data) {
+                document.getElementById('tip').innerHTML = '定位失败';
+            }
+
+            /*公交线路查询*/
+            function lineSearch() {
+                //实例化公交线路查询类，只取回一条路线
+                var linesearch = new AMap.LineSearch({
+                    pageIndex: 1,
+                    city: '青岛',
+                    pageSize: 1,
+                    extensions: 'all'
+                });
+                //搜索“701”相关公交线路
+                linesearch.search('701', function(status, result) {
+                    if (status === 'complete' && result.info === 'OK') {
+                        lineSearch_Callback(result);
+                    } else {
+                        alert(result);
+                    }
+                });
+                linesearch.search('702', function(status, result) {
+                    if (status === 'complete' && result.info === 'OK') {
+                        lineSearch_Callback(result);
+                    } else {
+                        alert(result);
+                    }
+                });
+                linesearch.search('703', function(status, result) {
+                    if (status === 'complete' && result.info === 'OK') {
+                        lineSearch_Callback(result);
+                    } else {
+                        alert(result);
+                    }
+                });
+                linesearch.search('机场巴士黄岛(705路)专线', function(status, result) {
+                    if (status === 'complete' && result.info === 'OK') {
+                        lineSearch_Callback(result);
+                    } else {
+                        alert(result);
+                    }
+                });
+            }
+            /*公交路线查询服务返回数据解析概况*/
+            function lineSearch_Callback(data) {
+                var lineArr = data.lineInfo;
+                var lineNum = data.lineInfo.length;
+                if (lineNum == 0) {
+                } else {
+                    for (var i = 0; i < lineNum; i++) {
+                        console.log(lineArr);
+                        var lineId = lineArr[i].id;
+                        var pathArr = lineArr[i].path;
+                        var stops = lineArr[i].via_stops;
+                        //如果默认终点不是机场，做一次颠倒
+                        if(stops[0].name=='青岛流亭国际机场'){
+                            var endPot = stops[0].location;
+                            var startPot = stops[stops.length - 1].location;
+                        }else{
+                            var startPot = stops[0].location;
+                            var endPot = stops[stops.length - 1].location;
+                        }
+                        if (i == 0) drawbusLine(startPot, endPot, lineId, pathArr);
+                    }
+                }
+            }
+            /*绘制路线*/
+            function drawbusLine(startPot, endPot,lineId, BusArr) {
+                console.log(BusArr);
+                //绘制起点，终点
+                new AMap.Marker({
+                    map: map,
+                    position: [startPot.lng, startPot.lat], //基点位置
+                    icon: "http://webapi.amap.com/theme/v1.3/markers/n/start.png",
+                    zIndex: 10
+                });
+                new AMap.Marker({
+                    map: map,
+                    position: [endPot.lng, endPot.lat], //基点位置
+                    icon: "http://webapi.amap.com/theme/v1.3/markers/n/end.png",
+                    zIndex: 10
+                });
+                //绘制乘车的路线
+                //900000028777—701
+                //370200070402—702
+                //900000028776—703
+                //370200071453—705
+                if(lineId==900000028777){
+                    busPolyline = new AMap.Polyline({
+                        map: map,
+                        path: BusArr,
+                        strokeColor: "#09f",//线颜色
+                        strokeOpacity: 0.8,//线透明度
+                        strokeWeight: 6//线宽
+                    });
+                }else if(lineId==370200070402){
+                    busPolyline = new AMap.Polyline({
+                        map: map,
+                        path: BusArr,
+                        strokeColor: "#ff564f",//线颜色
+                        strokeOpacity: 0.8,//线透明度
+                        strokeWeight: 6//线宽
+                    });
+                }else if(lineId==900000028776){
+                    busPolyline = new AMap.Polyline({
+                        map: map,
+                        path: BusArr,
+                        strokeColor: "#5529fa",//线颜色
+                        strokeOpacity: 0.8,//线透明度
+                        strokeWeight: 6//线宽
+                    });
+                }else{
+                    busPolyline = new AMap.Polyline({
+                        map: map,
+                        path: BusArr,
+                        strokeColor: "#24c339",//线颜色
+                        strokeOpacity: 0.8,//线透明度
+                        strokeWeight: 6//线宽
+                    });
+                }
+                map.setFitView();
+            }
+            lineSearch();
+
+
+
+        </script>
+
+    </div>
+    <!--导航-->
+    <div class="dh">
+        <i class="icon iconfont icon-daohang"></i>
+        <strong>目的地</strong>
+        <span>青岛市市北区海航万邦中心</span>
+    </div>
+    <!--/导航-->
+</div>
+
+<script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='//g.alicdn.com/msui/sm/0.5.7/js/??sm.min.js,sm-extend.min.js' charset='utf-8'></script>
+<!--smartqd-down-->
+<script type="text/javascript">
+    $(document).ready(function(){
+        //通过userAgent是否含有SmartQD判断是否在客户端里打开的页面，如果不是显示下载提示条
+        if(window.navigator.userAgent.indexOf('SmartQD')>=0){
+            $(".smartqd-down").css("display","none");
+        }else{
+            $(".smartqd-down").css("display","block");
+            $(".content").css("paddingBottom","2.4rem");
+        }
+        //关闭下载提示条
+        $(".close_x").click(function(){
+            $(".smartqd-down").css("display","none");
+            $(".content").css("paddingBottom","0");
+        });
+        //导航
+        $(document).on('click','.dh', function () {
+            $.modal({
+                title:'打开导航',
+                verticalButtons: true,
+                buttons: [
+                    {
+                        text: '苹果地图',
+                        onClick: function() {
+                            $.alert('你点击了苹果地图!')
+                        }
+                    },
+                    {
+                        text: '百度地图',
+                        onClick: function() {
+                            $.alert('你点击了百度地图!')
+                        }
+                    },
+                    {
+                        text: '腾讯地图',
+                        onClick: function() {
+                            $.alert('你点击了腾讯地图!')
+                        }
+                    },
+                    {
+                        text: '取消',
+                        onClick: function() {
+                            $.alert('你点击了取消!')
+                        }
+                    }
+                ]
+            })
+        });
+    });
+</script>
+<!--/smartqd-down-close-->
+<!--weixin-share-->
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+    mb = {};
+    (function(mb) {
+        $(function(){
+            var siteUrl = "airport/index.html";//这个地址注意替换为绝对地址
+            mb.wx = {};
+            mb.wx.shareData = {
+                "imgUrl" : "images/weixin.png",//这个图片地址注意替换为绝对地址
+                "link" : siteUrl,
+                "title" : "机场巴士线路详情",//这个地方请保持跟当前页面标题一致
+                "desc" : "机场巴士快捷查询尽在智慧青岛"
+            };
+            var apiurl = 'http://service1.smartqd.qdqss.cn/jssdk';
+            var initWX = function(json) {
+                //console.info(json);
+                wx.config({
+                    //debug : true,
+                    appId : json.appId,
+                    timestamp : json.timestamp,
+                    nonceStr : json.nonceStr,
+                    signature : json.signature,
+                    jsApiList : [ 'checkJsApi',
+                        'onMenuShareTimeline',
+                        'onMenuShareAppMessage']
+                });
+                wx.ready(function() {
+                    var shareData = mb.wx.shareData;
+                    wx.onMenuShareAppMessage({
+                        title : shareData.title,
+                        desc : shareData.desc,
+                        link : shareData.link,
+                        imgUrl : shareData.imgUrl
+                    });
+                    wx.onMenuShareTimeline({
+                        title : shareData.title + ' '+ shareData.desc,
+                        link : shareData.link,
+                        imgUrl : shareData.imgUrl
+                    });
+                });
+            };
+            $.getJSON(apiurl + "?jsoncallback=?&timesmap=" + Math.random() + "&url=" + encodeURIComponent(location.href), function(data) {
+                initWX(data)
+            })
+        });
+    })(mb);
+</script>
+<!--/weixin-share-->
+</body>
+</html>

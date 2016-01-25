@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>机场巴士-市区到机场</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.5.7/css/??sm.min.css,sm-extend.min.css">
+    <link rel="stylesheet" href="css/airport.min.css"/>
+</head>
+<body id="airport">
+
+<div class="page">
+
+    <div class="content">
+
+        <!--线路循环体-->
+        <div class="card marger-clear">
+            <div class="row toSq-title">
+                <div class="col-20">
+                    <i class="icon iconfont icon-gongjiao"></i>
+                </div>
+                <div class="col-80">
+                    <strong>机场一线 701</strong>
+                    <em>海航万邦中心 → 流亭国际机场</em>
+                </div>
+            </div>
+        </div>
+        <div class="card marger-clear">
+            <div class="line-time">
+                <i class="icon iconfont icon-clocko"></i>运营时间及班次
+            </div>
+            <div class="card-content">
+                <div class="line-info">
+                    发车时间：07:30－21:00<br/>
+                    发车间隔：30min<br/>
+                    21:00航班结束，根据航班动态发车(等候时间<40min)<br/>
+                </div>
+            </div>
+        </div>
+        <div class="card marger-clear">
+            <div class="line-station">
+                <i class="icon iconfont icon-tudingo"></i>停靠站点
+            </div>
+            <div class="card-content">
+                <div class="list-site">
+                    <ul>
+                        <li>
+                            <a href="map.html" external><i class="icon icon-right"></i>汽车东站</a>
+                        </li>
+                        <li>
+                            <a href="map.html" external>
+                                <i class="icon icon-right"></i>东城国际
+                            </a>
+                        </li>
+                    </ul>
+                    <ol>
+                        <li><span>1</span></li>
+                        <li><span>2</span></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!--/线路循环体-->
+
+        <!--footer-->
+        <div class="footer text-center">
+            <div class="ico">
+                <i class="icon iconfont icon-tel"></i>
+            </div>
+            <div class="text">
+                <strong class="sub">服务电话：<a href="tel:0532-96567">0532-96567</a></strong>
+            </div>
+        </div>
+        <!--/footer-->
+
+
+    </div>
+
+    <!--smartqd-down-->
+    <div class="smartqd-down">
+        <div class="close_x">+</div>
+        <div class="close"></div>
+        <div class="text">
+            <img src="images/smartqd.png"/>
+            下载智慧青岛客户端
+            <a href="http://www.smartqd.qdqss.cn/down" class="button button-orange" external>立即下载</a>
+        </div>
+    </div>
+    <!--/smartqd-down-->
+</div>
+<script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='//g.alicdn.com/msui/sm/0.5.7/js/??sm.min.js,sm-extend.min.js' charset='utf-8'></script>
+<!--smartqd-down-->
+<script type="text/javascript">
+    $(document).ready(function(){
+        //通过userAgent是否含有SmartQD判断是否在客户端里打开的页面，如果不是显示下载提示条
+        if(window.navigator.userAgent.indexOf('SmartQD')>=0){
+            $(".smartqd-down").css("display","none");
+        }else{
+            $(".smartqd-down").css("display","block");
+            $(".content").css("paddingBottom","2.4rem");
+        }
+        //关闭下载提示条
+        $(".close_x").click(function(){
+            $(".smartqd-down").css("display","none");
+            $(".content").css("paddingBottom","0");
+        });
+    });
+</script>
+<!--/smartqd-down-close-->
+<!--weixin-share-->
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+    mb = {};
+    (function(mb) {
+        $(function(){
+            var siteUrl = "airport/index.html";//这个地址注意替换为绝对地址
+            mb.wx = {};
+            mb.wx.shareData = {
+                "imgUrl" : "images/weixin.png",//这个图片地址注意替换为绝对地址
+                "link" : siteUrl,
+                "title" : "机场巴士线路详情",//这个地方请保持跟当前页面标题一致
+                "desc" : "机场巴士快捷查询尽在智慧青岛"
+            };
+            var apiurl = 'http://service1.smartqd.qdqss.cn/jssdk';
+            var initWX = function(json) {
+                //console.info(json);
+                wx.config({
+                    //debug : true,
+                    appId : json.appId,
+                    timestamp : json.timestamp,
+                    nonceStr : json.nonceStr,
+                    signature : json.signature,
+                    jsApiList : [ 'checkJsApi',
+                        'onMenuShareTimeline',
+                        'onMenuShareAppMessage']
+                });
+                wx.ready(function() {
+                    var shareData = mb.wx.shareData;
+                    wx.onMenuShareAppMessage({
+                        title : shareData.title,
+                        desc : shareData.desc,
+                        link : shareData.link,
+                        imgUrl : shareData.imgUrl
+                    });
+                    wx.onMenuShareTimeline({
+                        title : shareData.title + ' '+ shareData.desc,
+                        link : shareData.link,
+                        imgUrl : shareData.imgUrl
+                    });
+                });
+            };
+            $.getJSON(apiurl + "?jsoncallback=?&timesmap=" + Math.random() + "&url=" + encodeURIComponent(location.href), function(data) {
+                initWX(data)
+            })
+        });
+    })(mb);
+</script>
+<!--/weixin-share-->
+</body>
+</html>
